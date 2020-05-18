@@ -1,5 +1,5 @@
+var fs = require('fs');
 var Web3 = require('web3');
-
 var net = require('net');
 var web3 = new Web3('/Volumes/Samsung_T5/geth.ipc', net);
 
@@ -230,10 +230,9 @@ const erc20ABI = [
     }
 ];
 
-var exchanges = [];
+var exchanges = {};
 const factoryContract = new web3.eth.Contract(factoryABI, factory);
 factoryContract.methods.tokenCount().call(function(err, count){
-	console.log(count);
 	for (var i = 0; i < count; i++) {
 		factoryContract.methods.getTokenWithId(i).call(function(err, tokenAddress) {
 			if (err) {
@@ -252,10 +251,11 @@ factoryContract.methods.tokenCount().call(function(err, count){
 
 				factoryContract.methods.getExchange(tokenAddress).call(function(err, exchangeAddress) {
 					exchangeData['exchange'] = exchangeAddress;
-					exchanges.push(exchangeData);
+					exchanges[exchangeData.token] = exchangeData;
 
 					if (Object.keys(exchanges).length === Number(count)) {
-						console.log(exchanges);
+						var data = JSON.stringify(exchanges);
+                        fs.writeFileSync('uniswap_index.json', data);
 					}
 				});
 			});
